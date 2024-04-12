@@ -42,7 +42,7 @@ const sendMessage = async () => {
 
         const formData = new FormData();
         formData.append('history', JSON.stringify(messages));
-        const response = await fetch("http://127.0.0.1:4567/api/send-message", {
+        const response = await fetch(URL + "/api/send-message", {
             method: 'POST', // Метод POST
             body: formData // Тело запроса
         })
@@ -67,6 +67,7 @@ const sendButton = document.getElementById('send')
 const loading = document.getElementById('loading')
 const button_text = document.getElementById('button-text')
 const messages = []
+const URL = "http://127.0.0.1:4567"
 
 textarea.addEventListener("keydown", async function(event) {
     if (event.key === "Enter") {
