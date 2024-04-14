@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>GigaChat Bot</title>
-    <link rel="stylesheet" href="index.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope&display=swap" rel="stylesheet">
@@ -11,26 +11,464 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,400,0,0" />
 </head>
 <body>
-    <div class="wrap">
-        <div class="chat" id="chat">
-            <div class="messages-area" id="messages-area">
-                <div class="ribbon" id="ribbon">
-                    <p id="empty-text" class="text empty_message">У вас пока нет сообщений</p>
-                </div>
+    <button class="open-chat chat-margins text" id="open-chat">
+        Открыть чат
+    </button>
+    <div class="chat chat-margins" id="chat">
+        <div class="up-line">
+            <svg id="close" class="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/>
+            </svg>
+        </div>
+        <div class="messages-area" id="messages-area">
+            <div class="ribbon" id="ribbon">
+                <p id="empty-text" class="text empty_message">У вас пока нет сообщений</p>
             </div>
-            <div class="input-line">
-                <div class="textarea-wrapper">
-                    <textarea id="textarea" class="input-message text" placeholder="Введите текст" rows="1"></textarea>
-                </div>
-                <button class="send-button text" id="send">
-                    <span id="loading" class="loading loading_none material-symbols-rounded">
-                        progress_activity
-                    </span>
-                    <p id="button-text">Отправить</p>
-                </button>
+        </div>
+        <div class="input-line">
+            <div class="textarea-wrapper">
+                <textarea id="textarea" class="input-message text" placeholder="Введите текст" rows="1"></textarea>
             </div>
+            <button class="send-button text" id="send">
+                <svg id="loading" class="loading loading-none" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+                    <path d="M480-80q-82 0-155-31.5t-127.5-86Q143-252 111.5-325T80-480q0-83 31.5-155.5t86-127Q252-817 325-848.5T480-880q17 0 28.5 11.5T520-840q0 17-11.5 28.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160q133 0 226.5-93.5T800-480q0-17 11.5-28.5T840-520q17 0 28.5 11.5T880-480q0 82-31.5 155t-86 127.5q-54.5 54.5-127 86T480-80Z"/>
+                </svg>
+                <p id="button-text">Отправить</p>
+            </button>
         </div>
     </div>
 </body>
-<script src="index.js"></script>
+<style>
+    @keyframes load {
+        from {
+            rotate: 0deg;
+        }
+
+        to {
+            rotate: 360deg;
+        }
+    }
+
+    @keyframes out-fade-message {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes int-fade-modal {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateX(80px);
+        }
+    }
+
+    @keyframes out-fade-modal {
+        from {
+            opacity: 0;
+            transform: translateX(80px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    body {
+        font-size: 10px;
+        min-width: 320px;
+    }
+    p {
+        margin: 0;
+    }
+    .open-chat {
+        position: absolute;
+        width: 120px;
+        height: 50px;
+        background-color: black;
+        outline: none;
+        border: none;
+        border-radius: 25px;
+        transition: all 0.3s;
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    .open-chat:hover {
+        cursor: pointer;
+        transform: scale(1.1);
+    }
+    .chat {
+        width: 600px;
+        border-radius: 15px;
+        border: 1px solid #464646;
+        padding: 17px 17px 10px;
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        background-color: white;
+        transition: all 0.5s;
+        max-height: calc(100vh - 60px);
+    }
+    .open-chat-anim {
+        animation: out-fade-modal 0.5s normal;
+    }
+    .close-chat-anim {
+        opacity: 0;
+        transform: translateX(80px);
+    }
+    .chat-margins {
+        right: 15px;
+        bottom: 15px;
+    }
+    .up-line {
+        width: 100%;
+        display: flex;
+        align-content: center;
+        justify-content: flex-end;
+        margin-bottom: 10px;
+    }
+    .close {
+        width: 24px;
+        height: 24px;
+        fill: rgba(0, 0, 0, 0.5);
+    }
+    .close:hover {
+        cursor: pointer;
+    }
+    .messages-area {
+        display: block;
+        overflow-x: hidden;
+        overflow-y: auto;
+        margin-bottom: 1rem;
+        flex-grow: 1;
+        height: 350px;
+        padding-right: 7px;
+    }
+    .messages-area::-webkit-scrollbar {
+        background-color: rgba(0, 0, 0, 0.2);
+        width: 3px;
+        border-radius: 2px;
+    }
+    .messages-area::-webkit-scrollbar-thumb {
+        background-color: black;
+        border-radius: 2px;
+    }
+    .input-line {
+        border-top: 1px solid #D9D9D9;
+        padding-top: 8px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .input-message {
+        font-size: 14px;
+        border: none;
+        outline: none;
+        resize: none;
+        width: 100%;
+    }
+    .input-message::placeholder {
+        color: rgba(0, 0, 0, 0.5);
+    }
+    .textarea-wrapper {
+        max-height: 120px;
+        margin-right: 5px;
+        padding-right: 10px;
+        flex-grow: 1;
+        display: flex;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+    .textarea-wrapper::-webkit-scrollbar {
+        background-color: rgba(0, 0, 0, 0.1);
+        width: 2px;
+        border-radius: 2px;
+    }
+    .textarea-wrapper::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 0, 0, 0.4);
+        border-radius: 2px;
+    }
+    .send-button {
+        font-weight: bold;
+        font-size: 11px;
+        color: white;
+        width: 80px;
+        height: 30px;
+        background-color: black;
+        border-radius: 15px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .send-button:hover {
+        cursor: pointer;
+    }
+    .loading {
+        fill: white;
+        width: 20px;
+        height: 20px;
+        animation: load 1s ease-in-out infinite;
+    }
+    .loading-none {
+        display: none !important;
+    }
+    textarea::-webkit-scrollbar {
+        width: 0;
+    }
+    .text {
+        font-family: 'Manrope', sans-serif;
+    }
+    .ribbon {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
+        justify-content: center;
+    }
+    .message {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 21px;
+        animation: out-fade-message 0.5s ease-in-out forwards;
+    }
+    .author {
+        font-weight: bold;
+        font-size: 16px;
+        margin-bottom: 7px;
+    }
+    .message-text {
+        font-size: 14px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    .empty_message {
+        text-align: center;
+        color: rgba(0, 0, 0, 0.3);
+        font-size: 13px;
+    }
+    @media (max-width: 1199px) {
+        .chat {
+            width: 400px;
+            padding: 15px 15px 9px;
+        }
+        .open-chat {
+            width: 100px;
+            height: 40px;
+            font-size: 12px;
+        }
+        .up-line {
+            margin-bottom: 8px;
+        }
+        .close {
+            width: 21px;
+            height: 21px;
+        }
+    }
+    @media (max-width: 991px) {
+        .open-chat {
+            width: 100px;
+            height: 40px;
+            font-size: 12px;
+        }
+        .up-line {
+            margin-bottom: 8px;
+        }
+        .close {
+            width: 21px;
+            height: 21px;
+        }
+        .messages-area {
+            height: 300px;
+        }
+    }
+    @media (max-width: 767px) {
+        .open-chat {
+            width: 90px;
+            height: 35px;
+            font-size: 11px;
+        }
+        .chat {
+            width: 450px;
+            padding: 13px 13px 8px;
+        }
+        .up-line {
+            margin-bottom: 7px;
+        }
+        .close {
+            width: 18px;
+            height: 18px;
+        }
+        .chat-margins {
+            right: 10px;
+            bottom: 10px;
+        }
+        .input-message {
+            font-size: 12px;
+        }
+        .textarea-wrapper {
+            max-height: 100px;
+        }
+        .send-button {
+            font-size: 10px;
+            width: 75px;
+            height: 28px;
+        }
+    }
+    @media (max-width: 575px) {
+        .chat {
+            width: auto;
+            height: auto;
+            left: 10px;
+            top: 10px;
+        }
+        .messages-area {
+            height: auto;
+        }
+        .close {
+            width: 26px;
+            height: 26px;
+        }
+        .up-line {
+            margin-bottom: 10px;
+        }
+        .input-message {
+            font-size: 13px;
+        }
+        .textarea-wrapper {
+            max-height: 100px;
+        }
+        .send-button {
+            font-size: 11px;
+            width: 80px;
+            height: 30px;
+        }
+    }
+</style>
+<script>
+    const generateMessageBlock = (role, content) => {
+        return `<div class="message">
+                <p class="author text">${role === 'user' ? 'Вы' : 'GigaChat'}</p>
+                <p class="message-text text">${content}</p>
+            </div>`
+    }
+
+    const addMessageToRibbon = (message) => {
+        ribbon.insertAdjacentHTML(
+            'beforeend', generateMessageBlock(message.role, message.content)
+        )
+    }
+
+    const scrollToBottom = () => {
+        const bottom = messages_area.scrollHeight - messages_area.clientHeight;
+        messages_area.scrollTo({
+            top: bottom,
+            behavior: 'smooth'
+        })
+    }
+
+    const sendMessage = async () => {
+        const text = textarea.value
+        if (text.replaceAll('\n', "").length !== 0) {
+            button_text.style.display = 'none'
+            loading.classList.remove('loading-none')
+            const message = {
+                role: 'user',
+                content: text
+            }
+            messages.push(message)
+
+            empty_text.style.display = 'none'
+            ribbon.style.justifyContent = 'flex-start'
+
+            addMessageToRibbon(message)
+            scrollToBottom()
+
+            textarea.value = ""
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+
+            const formData = new FormData();
+            formData.append('history', JSON.stringify(messages));
+            const response = await fetch(URL + "/api/send-message", {
+                method: 'POST', // Метод POST
+                body: formData // Тело запроса
+            })
+            const message_response = await response.json()
+
+            button_text.style.display = 'block'
+            loading.classList.add('loading-none')
+
+            addMessageToRibbon(message_response)
+            scrollToBottom()
+        }
+    }
+
+    const chat = document.getElementById('chat')
+    const empty_text = document.getElementById('empty-text')
+    const textarea = document.getElementById('textarea');
+    const ribbon = document.getElementById('ribbon')
+    const messages_area = document.getElementById('messages-area')
+    const sendButton = document.getElementById('send')
+    const loading = document.getElementById('loading')
+    const button_text = document.getElementById('button-text')
+    const messages = []
+    const open_chat_button = document.getElementById('open-chat')
+    const close = document.getElementById('close')
+    const URL = "http://127.0.0.1:4567"
+
+    const size = document.getElementById('size')
+
+    textarea.addEventListener("keydown", async function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendMessage().then()
+        }
+    });
+
+    textarea.addEventListener('input', (event) => {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+    });
+
+    sendButton.addEventListener('click', async () => {
+        sendMessage().then()
+    })
+
+    open_chat_button.addEventListener('click', () => {
+        chat.classList.remove('close-chat-anim')
+        chat.classList.add('open-chat-anim')
+        open_chat_button.style.opacity = '0'
+        setTimeout(() => {
+            open_chat_button.style.display = 'none'
+            chat.style.display = 'flex'
+            size.innerText = window.innerWidth.toString()
+        }, 200)
+    })
+
+    close.addEventListener('click', () => {
+        textarea.value = ""
+        chat.classList.remove('open-chat-anim')
+        chat.classList.add('close-chat-anim')
+        open_chat_button.style.display = 'block'
+        setTimeout(() => {
+            chat.style.display = 'none'
+            open_chat_button.style.opacity = '1'
+        }, 500)
+    })
+</script>
 </html>
